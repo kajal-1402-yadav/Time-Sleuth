@@ -21,24 +21,30 @@ type ActivityData = {
   const [data, setData] = useState<ActivityData[]>([])
 
   useEffect(() => {
-    const loadData = async () => {
-      const logs = await fetchActivityLogs();
+  const loadData = async () => {
+    const logs = await fetchActivityLogs();
 
-      const formatted = logs.map((log: any) => ({
-        time: new Date(log.timestamp).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        active:
-          log.mouse_moves + log.clicks + log.keystrokes,
-        idle: log.idle_time,
-      }));
+    const formatted = logs.map((log: any) => ({
+      time: new Date(log.timestamp).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      active:
+        log.mouse_moves + log.clicks + log.keystrokes,
+      idle: log.idle_time,
+    }));
 
-      setData(formatted);
-    };
+    setData(formatted);
+  };
 
-    loadData();
-  }, []);
+  // initial load
+  loadData();
+
+  // 🔁 auto refresh every 5 sec
+  const interval = setInterval(loadData, 5000);
+
+  return () => clearInterval(interval);
+}, []);
 
   return (
     <div className="w-full h-[300px]">

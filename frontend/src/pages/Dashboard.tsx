@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import SuspicionCard from "../components/SuspicionCard";
 import ActivityChart from "../components/ActivityChart";
 import { analyzeActivity } from "../lib/analysisService";
+import ActivityHeatmap from "../components/ActivityHeatmap";
 
 const Dashboard = () => {
   const [score, setScore] = useState(0);
@@ -17,12 +18,18 @@ const Dashboard = () => {
       }
     };
 
+    // initial run
     runAnalysis();
+
+    // 🔁 every 5 seconds
+    const interval = setInterval(runAnalysis, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
-      
+
       {/* Header */}
       <div className="flex justify-between items-center mb-12">
         <div>
@@ -66,6 +73,14 @@ const Dashboard = () => {
         <div className="bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition transform hover:scale-[1.01]">
           <ActivityChart />
         </div>
+      </div>
+
+      <div className="mt-10 bg-gray-800 p-6 rounded-2xl shadow-lg">
+        <h2 className="text-lg font-semibold mb-4">
+          Activity Heatmap
+        </h2>
+
+        <ActivityHeatmap />
       </div>
     </div>
   );
