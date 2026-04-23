@@ -1,4 +1,5 @@
 import SuspicionCard from "../components/SuspicionCard";
+import ActivityChart from "../components/ActivityChart";
 
 const Dashboard = () => {
   return (
@@ -33,12 +34,16 @@ const Dashboard = () => {
 
       {/* Activity */}
       <div className="mt-10 bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700">
-        <h2 className="text-xl font-semibold mb-4">Activity Overview</h2>
+        <h2 className="text-white text-lg font-semibold mb-4">
+    Activity Overview
+  </h2>
 
-        <div className="h-40 flex items-center justify-center text-gray-500 border border-dashed border-gray-600 rounded-xl">
-          Chart coming next 🚀
+        <div className="bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition transform hover:scale-[1.01]">
+          
+           <ActivityChart />
         </div>
       </div>
+      
 
     </div>
   );
