@@ -8,22 +8,44 @@ import {
   CartesianGrid,
 } from "recharts";
 
-const data = [
-  { time: "9 AM", active: 30, idle: 10 },
-  { time: "10 AM", active: 50, idle: 5 },
-  { time: "11 AM", active: 40, idle: 15 },
-  { time: "12 PM", active: 60, idle: 10 },
-  { time: "1 PM", active: 20, idle: 30 },
-  { time: "2 PM", active: 70, idle: 5 },
-];
+import { useEffect, useState } from "react";
+import { fetchActivityLogs } from "../lib/activityService";
 
 const ActivityChart = () => {
+
+type ActivityData = {
+  time: string;
+  active: number;
+  idle: number;
+};
+  const [data, setData] = useState<ActivityData[]>([])
+
+  useEffect(() => {
+    const loadData = async () => {
+      const logs = await fetchActivityLogs();
+
+      const formatted = logs.map((log: any) => ({
+        time: new Date(log.timestamp).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        active:
+          log.mouse_moves + log.clicks + log.keystrokes,
+        idle: log.idle_time,
+      }));
+
+      setData(formatted);
+    };
+
+    loadData();
+  }, []);
+
   return (
     <div className="w-full h-[300px]">
       <ResponsiveContainer>
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-          
+
           <XAxis dataKey="time" stroke="#9CA3AF" />
           <YAxis stroke="#9CA3AF" />
 
