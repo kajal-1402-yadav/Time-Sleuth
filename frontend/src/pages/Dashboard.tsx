@@ -7,31 +7,45 @@ import ActivityHeatmap from "../components/ActivityHeatmap";
 
 import { analyzeActivity } from "../lib/analysisService";
 
+import { signOut } from "../lib/authService";
+import { useNavigate } from "react-router-dom";
+
 const Dashboard = () => {
   const [score, setScore] = useState(0);
   const [reason, setReason] = useState("");
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   useEffect(() => {
+    let isMounted = true;
+
     const runAnalysis = async () => {
       const result = await analyzeActivity();
 
-      if (result) {
+      if (result && isMounted) {
         setScore(result.suspicion_score);
         setReason(result.reason);
       }
     };
 
-    // initial run
     runAnalysis();
 
-    // auto refresh every 5 sec
     const interval = setInterval(runAnalysis, 5000);
 
-    return () => clearInterval(interval);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
+
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6 transition-all duration-500">
 
       {/* Header */}
       <div className="flex justify-between items-center mb-12">
@@ -44,7 +58,6 @@ const Dashboard = () => {
           </p>
         </div>
 
-        {/* Right side controls */}
         <div className="flex gap-3">
           <div className="bg-gray-700 px-4 py-2 rounded-lg text-sm">
             Today
@@ -56,6 +69,13 @@ const Dashboard = () => {
           >
             History
           </Link>
+
+          <button
+            onClick={handleLogout}
+            className="bg-red-500 px-4 py-2 rounded-lg text-sm hover:bg-red-600 transition"
+          >
+            Logout
+          </button>
         </div>
       </div>
 
@@ -64,7 +84,7 @@ const Dashboard = () => {
 
         <SuspicionCard score={score} reason={reason} />
 
-        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg hover:scale-105 transition hover:shadow-xl hover:shadow-blue-500/10">
+        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg hover:scale-105 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10">
           <h3 className="text-gray-400 text-sm">Active Time</h3>
           <h1 className="text-3xl font-bold mt-2 text-green-400">
             5h 20m
@@ -72,7 +92,7 @@ const Dashboard = () => {
           <p className="text-gray-500 mt-2 text-sm">Today</p>
         </div>
 
-        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg hover:scale-105 transition hover:shadow-xl hover:shadow-blue-500/10">
+        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg hover:scale-105 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10">
           <h3 className="text-gray-400 text-sm">Idle Time</h3>
           <h1 className="text-3xl font-bold mt-2 text-yellow-400">
             1h 10m

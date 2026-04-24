@@ -12,15 +12,16 @@ const SuspicionCard = ({ score, reason }: Props) => {
         {score}%
       </h1>
 
-      <p className="text-gray-500 mt-2 text-sm">{reason}</p>
-
+      <p className="text-gray-400 mt-2 text-sm animate-pulse">
+  {reason || "Analyzing activity..."}
+</p>
       <div className="w-full bg-gray-700 rounded-full h-3 mt-4">
         <div
-         className="bg-red-500 h-3 rounded-full transition-all duration-500 ease-in-out"
+          className="bg-red-500 h-3 rounded-full transition-all duration-500 ease-in-out"
           style={{ width: `${score}%` }}
         />
       </div>
-      
+
     </div>
   );
 };

@@ -13,9 +13,20 @@ type ActivityLog = {
 export const analyzeActivity = async () => {
   const today = new Date().toISOString().split("T")[0];
 
+  // 🔐 get logged-in user
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    console.error("No authenticated user");
+    return;
+  }
+
   const { data: logs, error } = await supabase
     .from("activity_logs")
     .select("*")
+    .eq("user_id", user.id) // ✅ filter by user
     .gte("timestamp", today);
 
   if (error || !logs) {
@@ -39,6 +50,7 @@ export const analyzeActivity = async () => {
     totalActivity += activity;
     totalIdle += log.idle_time;
 
+    // 🟡 idle streak
     if (log.idle_time > 10) {
       idleStreak++;
       maxIdleStreak = Math.max(maxIdleStreak, idleStreak);
@@ -46,6 +58,7 @@ export const analyzeActivity = async () => {
       idleStreak = 0;
     }
 
+    // 🔴 spike detection
     if (
       index > 0 &&
       typedLogs[index - 1].idle_time > 10 &&
@@ -55,6 +68,7 @@ export const analyzeActivity = async () => {
     }
   });
 
+  // 🧠 scoring
   let score =
     totalIdle * 1.5 +
     maxIdleStreak * 10 +
@@ -63,6 +77,7 @@ export const analyzeActivity = async () => {
 
   score = Math.max(0, Math.min(100, Math.round(score)));
 
+  // 🧠 reasoning
   let reason = "Normal activity pattern";
 
   if (spikeDetected) {
@@ -76,7 +91,7 @@ export const analyzeActivity = async () => {
   }
 
   const result = {
-    user_id: "demo-user",
+    user_id: user.id, // 🔥 real user
     date: today,
     suspicion_score: score,
     anomaly_flag: score > 60,
