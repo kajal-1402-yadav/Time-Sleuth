@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+
 import SuspicionCard from "../components/SuspicionCard";
 import ActivityChart from "../components/ActivityChart";
-import { analyzeActivity } from "../lib/analysisService";
 import ActivityHeatmap from "../components/ActivityHeatmap";
+
+import { analyzeActivity } from "../lib/analysisService";
 
 const Dashboard = () => {
   const [score, setScore] = useState(0);
@@ -21,7 +24,7 @@ const Dashboard = () => {
     // initial run
     runAnalysis();
 
-    // 🔁 every 5 seconds
+    // auto refresh every 5 sec
     const interval = setInterval(runAnalysis, 5000);
 
     return () => clearInterval(interval);
@@ -33,18 +36,32 @@ const Dashboard = () => {
       {/* Header */}
       <div className="flex justify-between items-center mb-12">
         <div>
-          <h1 className="text-3xl font-bold tracking-wide">Time Sleuth</h1>
-          <p className="text-gray-400 text-sm">AI Productivity Monitor</p>
+          <h1 className="text-3xl font-bold tracking-wide">
+            Time Sleuth
+          </h1>
+          <p className="text-gray-400 text-sm">
+            AI Productivity Monitor
+          </p>
         </div>
-        <div className="bg-gray-700 px-4 py-2 rounded-lg text-sm">
-          Today
+
+        {/* Right side controls */}
+        <div className="flex gap-3">
+          <div className="bg-gray-700 px-4 py-2 rounded-lg text-sm">
+            Today
+          </div>
+
+          <Link
+            to="/history"
+            className="bg-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-600 transition"
+          >
+            History
+          </Link>
         </div>
       </div>
 
       {/* Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
-        {/* 🔥 Pass data here */}
         <SuspicionCard score={score} reason={reason} />
 
         <div className="bg-gray-800 p-6 rounded-2xl shadow-lg hover:scale-105 transition hover:shadow-xl hover:shadow-blue-500/10">
@@ -64,7 +81,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Activity */}
+      {/* Activity Chart */}
       <div className="mt-10 bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700">
         <h2 className="text-white text-lg font-semibold mb-4">
           Activity Overview
@@ -75,6 +92,7 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* Heatmap */}
       <div className="mt-10 bg-gray-800 p-6 rounded-2xl shadow-lg">
         <h2 className="text-lg font-semibold mb-4">
           Activity Heatmap
@@ -82,6 +100,7 @@ const Dashboard = () => {
 
         <ActivityHeatmap />
       </div>
+
     </div>
   );
 };
