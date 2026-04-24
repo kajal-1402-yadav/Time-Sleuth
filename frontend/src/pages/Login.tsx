@@ -16,8 +16,6 @@ const Login = () => {
 
     const { error } = await signIn(email, password);
 
-    console.log("LOGIN ERROR:", error); // 👈 debug
-
     if (!error) {
       navigate("/");
     } else {
@@ -28,31 +26,44 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
-      <div className="bg-gray-800 p-6 rounded-xl w-80">
-        <h2 className="text-xl mb-4">Employee Login</h2>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white flex items-center justify-center p-6">
+
+      {/* Login Card */}
+      <div className="bg-gray-800 p-8 rounded-2xl shadow-lg w-full max-w-sm">
+
+        {/* Title */}
+        <h1 className="text-2xl font-bold mb-2 text-center">
+          Time Sleuth
+        </h1>
+        <p className="text-gray-400 text-sm text-center mb-6">
+          Employee Login
+        </p>
 
         {errorMsg && (
-          <p className="text-red-400 text-sm mb-2">{errorMsg}</p>
+          <p className="text-red-400 text-sm mb-3 text-center">
+            {errorMsg}
+          </p>
         )}
 
+        {/* Inputs */}
         <input
-          className="w-full p-2 mb-3 bg-gray-700 rounded"
+          className="w-full p-3 mb-3 bg-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="Email"
           onChange={(e) => setEmail(e.target.value)}
         />
 
         <input
           type="password"
-          className="w-full p-2 mb-4 bg-gray-700 rounded"
+          className="w-full p-3 mb-4 bg-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="Password"
           onChange={(e) => setPassword(e.target.value)}
         />
 
+        {/* Button */}
         <button
           onClick={handleLogin}
           disabled={loading}
-          className="w-full bg-blue-500 p-2 rounded hover:bg-blue-600 transition"
+          className="w-full bg-blue-500 p-3 rounded-lg hover:bg-blue-600 transition font-semibold"
         >
           {loading ? "Logging in..." : "Login"}
         </button>
