@@ -5,8 +5,8 @@ import SuspicionCard from "../components/SuspicionCard";
 import ActivityChart from "../components/ActivityChart";
 import ActivityHeatmap from "../components/ActivityHeatmap";
 
-import { analyzeActivity } from "../lib/analysisService";
-
+import { analyzeFromAPI } from "../lib/apiService";
+import { supabase } from "../lib/supabaseClient";
 import { signOut } from "../lib/authService";
 import { useNavigate } from "react-router-dom";
 
@@ -21,27 +21,30 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    let isMounted = true;
-
     const runAnalysis = async () => {
-      const result = await analyzeActivity();
+      // 🔐 get current user
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-      if (result && isMounted) {
+      if (!user) return;
+
+      const result = await analyzeFromAPI(user.id);
+
+      if (result) {
         setScore(result.suspicion_score);
         setReason(result.reason);
       }
     };
 
+    // initial run
     runAnalysis();
 
+    // 🔁 auto refresh
     const interval = setInterval(runAnalysis, 5000);
 
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
+    return () => clearInterval(interval);
   }, []);
-
 
 
   return (
