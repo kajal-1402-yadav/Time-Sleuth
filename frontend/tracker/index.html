@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Time Sleuth Tracker</title>
+  </head>
+  <body style="background:#111; color:white; text-align:center;">
+    <h2>Tracking Activity...</h2>
+    <p id="data"></p>
+
+    <script>
+      setInterval(() => {
+        const data = window.tracker.getActivity();
+
+        document.getElementById("data").innerText =
+          `Mouse: ${data.mouseMoves}, Clicks: ${data.clicks}, Keys: ${data.keys}`;
+
+        console.log(data);
+
+        window.tracker.reset();
+      }, 5000);
+    </script>
+  </body>
+</html>

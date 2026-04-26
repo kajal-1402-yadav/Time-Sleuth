@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchAnalysisHistory } from "../lib/historyService";
+import { fetchHistory } from "../lib/historyService";
 
 type HistoryItem = {
   date: string;
@@ -13,7 +13,7 @@ const History = () => {
 
   useEffect(() => {
     const load = async () => {
-      const res = await fetchAnalysisHistory();
+      const res = await fetchHistory();
       setData(res);
     };
 
@@ -21,45 +21,39 @@ const History = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
+      
       <h1 className="text-2xl font-bold mb-6">History</h1>
 
       <div className="space-y-4">
-        {data.length === 0 ? (
-  <div className="text-center text-gray-400 mt-10">
-    No history available yet
-  </div>
-) : (
-  <div className="space-y-4">
-    {data.map((item, index) => (
-      <div
-        key={index}
-        className="bg-gray-800 p-4 rounded-xl flex justify-between items-center"
-      >
-        <div>
-          <p className="font-semibold">{item.date}</p>
-          <p className="text-sm text-gray-400">{item.reason}</p>
-        </div>
-
-        <div className="text-right">
-          <p
-            className={`font-bold ${
-              item.anomaly_flag
-                ? "text-red-400"
-                : "text-green-400"
-            }`}
+        {data.map((item, index) => (
+          <div
+            key={index}
+            className="bg-gray-800 p-4 rounded-xl shadow-md flex justify-between items-center"
           >
-            {item.suspicion_score}%
-          </p>
+            <div>
+              <p className="text-sm text-gray-400">{item.date}</p>
+              <p className="text-lg font-semibold">
+                {item.reason}
+              </p>
+            </div>
 
-          <p className="text-xs text-gray-500">
-            {item.anomaly_flag ? "Suspicious" : "Normal"}
-          </p>
-        </div>
-      </div>
-    ))}
-  </div>
-)}
+            <div className="text-right">
+              <p className="text-xl font-bold text-red-400">
+                {item.suspicion_score}%
+              </p>
+              <p
+                className={`text-sm ${
+                  item.anomaly_flag
+                    ? "text-red-400"
+                    : "text-green-400"
+                }`}
+              >
+                {item.anomaly_flag ? "Anomaly" : "Normal"}
+              </p>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
