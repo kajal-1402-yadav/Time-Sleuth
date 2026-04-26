@@ -1,15 +1,32 @@
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, ipcMain } = require("electron");
+const path = require("path");
+
+let mainWindow;
+let currentUserId = null;
+
+// ✅ receive user from dashboard
+ipcMain.on("set-user", (event, userId) => {
+  console.log("User stored in Electron:", userId);
+  currentUserId = userId;
+});
+
+// ✅ always return latest user
+ipcMain.handle("get-user", async () => {
+  return currentUserId;
+});
 
 function createWindow() {
-  const win = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 400,
-    height: 300,
+    height: 500,
     webPreferences: {
-      preload: __dirname + "/preload.js",
+      preload: path.join(__dirname, "preload.js"),
+      contextIsolation: true,
+      nodeIntegration: false,
     },
   });
 
-  win.loadFile("index.html");
+  mainWindow.loadFile("index.html");
 }
 
 app.whenReady().then(createWindow);

@@ -1,23 +1,214 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Time Sleuth Tracker</title>
-  </head>
-  <body style="background:#111; color:white; text-align:center;">
-    <h2>Tracking Activity...</h2>
-    <p id="data"></p>
+<head>
+  <title>Time Sleuth Tracker</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+</head>
 
-    <script>
-      setInterval(() => {
-        const data = window.tracker.getActivity();
+<body style="
+  margin:0;
+  font-family:sans-serif;
+  background: linear-gradient(to bottom right, #111827, #1f2937, #111827);
+  color:white;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+">
 
-        document.getElementById("data").innerText =
-          `Mouse: ${data.mouseMoves}, Clicks: ${data.clicks}, Keys: ${data.keys}`;
+  <div style="
+    background:#1f2937;
+    padding:30px;
+    border-radius:20px;
+    width:320px;
+    text-align:center;
+    box-shadow:0 10px 30px rgba(0,0,0,0.5);
+  ">
 
-        console.log(data);
+    <h2>Time Sleuth</h2>
+    <p style="color:#9ca3af; font-size:12px;">Tracker</p>
 
-        window.tracker.reset();
-      }, 5000);
-    </script>
-  </body>
+    <h1 id="timer">00:00:00</h1>
+    <p id="status" style="color:#9ca3af;">Loading user...</p>
+
+    <div style="display:flex; gap:10px; margin-top:20px;">
+      <button onclick="startTracking()" style="flex:1; padding:10px; background:#22c55e; border:none; border-radius:10px; color:white;">Start</button>
+      <button onclick="showBreakInput()" style="flex:1; padding:10px; background:#f59e0b; border:none; border-radius:10px; color:white;">Pause</button>
+    </div>
+
+    <button onclick="finishDay()" style="
+      margin-top:15px;
+      width:100%;
+      padding:10px;
+      background:#ef4444;
+      border:none;
+      border-radius:10px;
+      color:white;
+    ">
+      Finish Day
+    </button>
+
+    <!-- Break Input -->
+    <div id="breakBox" style="display:none; margin-top:20px;">
+      <input id="breakMinutes" type="number" placeholder="Break (min)"
+        style="width:100%; padding:10px; border-radius:10px; border:none; background:#374151; color:white;" />
+
+      <button onclick="confirmBreak()" style="
+        margin-top:10px;
+        width:100%;
+        padding:10px;
+        background:#6366f1;
+        border:none;
+        border-radius:10px;
+        color:white;
+      ">
+        Confirm Break
+      </button>
+    </div>
+
+  </div>
+
+<script>
+
+let startTime = null;
+let elapsed = 0;
+let timerInterval = null;
+let isTracking = false;
+
+let currentSession = null;
+let currentSessionId = null;
+
+// 🔥 TEMP USER (so nothing blocks)
+let USER_ID = "d859bb61-5087-4de3-ac14-7365bb299052";
+
+// ⏱ FORMAT TIME
+function formatTime(ms) {
+  const s = Math.floor(ms / 1000);
+  const h = String(Math.floor(s / 3600)).padStart(2, "0");
+  const m = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
+  const sec = String(s % 60).padStart(2, "0");
+  return `${h}:${m}:${sec}`;
+}
+
+// ▶️ START
+function startTracking() {
+  console.log("START CLICKED");
+
+  if (isTracking) return;
+
+  isTracking = true;
+
+  startTime = Date.now() - elapsed;
+
+  document.getElementById("status").innerText = "Working...";
+
+  clearInterval(timerInterval);
+
+  timerInterval = setInterval(() => {
+    elapsed = Date.now() - startTime;
+    document.getElementById("timer").innerText = formatTime(elapsed);
+  }, 1000);
+
+  // 🔥 IMPORTANT FIX
+  currentSessionId = null;
+
+  currentSession = {
+    type: "work",
+    start: new Date().toISOString(),
+  };
+
+  sendSession(currentSession, null);
+}
+
+// ⏸ PAUSE
+function showBreakInput() {
+  if (!isTracking) return;
+
+  clearInterval(timerInterval);
+  isTracking = false;
+
+  endSession();
+
+  document.getElementById("breakBox").style.display = "block";
+  document.getElementById("status").innerText = "Paused";
+}
+
+// ✅ CONFIRM BREAK
+function confirmBreak() {
+  const mins = document.getElementById("breakMinutes").value;
+  if (!mins || mins <= 0) return;
+
+  document.getElementById("breakBox").style.display = "none";
+
+  currentSession = {
+    type: "break",
+    start: new Date().toISOString(),
+  };
+
+  sendSession(currentSession, null);
+
+  document.getElementById("status").innerText = `Break: ${mins} min`;
+
+  setTimeout(() => {
+    endSession();
+
+    document.getElementById("status").innerText = "Resuming...";
+
+    startTracking();
+  }, mins * 60 * 1000);
+}
+
+// 🛑 FINISH
+function finishDay() {
+  if (isTracking) {
+    clearInterval(timerInterval);
+    isTracking = false;
+  }
+
+  endSession();
+
+  elapsed = 0;
+  document.getElementById("timer").innerText = "00:00:00";
+  document.getElementById("status").innerText = "Finished";
+}
+
+// 📡 SEND SESSION (SAFE — won’t break UI)
+async function sendSession(session, endTime) {
+  try {
+    const res = await fetch("http://127.0.0.1:8000/session", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: currentSessionId,
+        user_id: USER_ID,
+        type: session.type,
+        start_time: session.start,
+        end_time: endTime,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (data?.id) {
+      currentSessionId = data.id;
+    }
+  } catch (err) {
+    console.error("API error (ignored):", err);
+  }
+}
+
+// 🔚 END SESSION
+async function endSession() {
+  if (!currentSession) return;
+
+  await sendSession(currentSession, new Date().toISOString());
+
+  currentSession = null;
+  currentSessionId = null;
+}
+</script>
+
+</body>
 </html>

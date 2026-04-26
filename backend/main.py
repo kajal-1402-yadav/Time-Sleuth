@@ -5,16 +5,17 @@ from dotenv import load_dotenv
 from datetime import datetime
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Header, HTTPException
-
+from fastapi import Request
 
 # load env variables
 load_dotenv()
 
 app = FastAPI()
 
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  
+    allow_origins=["*"],  # or ["http://localhost:5173"]
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -119,3 +120,40 @@ def analyze(authorization: str = Header(None)):
     ).execute()
 
     return result
+
+
+@app.post("/activity")
+async def receive_activity(request: Request):
+    data = await request.json()
+
+    supabase.table("activity_logs").insert({
+        "user_id": data["user_id"],
+        "mouse_moves": data["mouse_moves"],
+        "clicks": data["clicks"],
+        "keystrokes": data["keystrokes"],
+        "idle_time": data["idle_time"],
+    }).execute()
+
+    return {"status": "ok"}
+
+
+@app.post("/session")
+async def save_session(request: Request):
+    data = await request.json()
+
+    if data.get("id"):
+        # 🔄 update existing session
+        supabase.table("work_sessions").update({
+            "end_time": data["end_time"]
+        }).eq("id", data["id"]).execute()
+    else:
+        # ➕ create new session
+        res = supabase.table("work_sessions").insert({
+            "user_id": data["user_id"],
+            "type": data["type"],
+            "start_time": data["start_time"],
+        }).execute()
+
+        return res.data[0]  # return id
+
+    return {"status": "updated"}
