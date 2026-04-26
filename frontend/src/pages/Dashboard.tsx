@@ -29,7 +29,7 @@ const Dashboard = () => {
 
       if (!user) return;
 
-      const result = await analyzeFromAPI(user.id);
+      const result = await analyzeFromAPI();
 
       if (result) {
         setScore(result.suspicion_score);

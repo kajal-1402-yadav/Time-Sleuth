@@ -1,11 +1,17 @@
-export const analyzeFromAPI = async (userId: string) => {
-  try {
-    const res = await fetch(
-      `http://127.0.0.1:8000/analyze/${userId}`
-    );
+import { supabase } from "./supabaseClient";
 
-    return await res.json();
-  } catch (error) {
-    console.error("API error:", error);
-  }
+export const analyzeFromAPI = async () => {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  const token = session?.access_token;
+
+  const res = await fetch("http://127.0.0.1:8000/analyze", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  return await res.json();
 };
